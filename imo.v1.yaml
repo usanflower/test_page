@@ -1,0 +1,390 @@
+openapi: 3.0.0
+info:
+  title: 고객관리
+  version: '1.0'
+  contact:
+    name: 김기백
+    email: incar.kkb@gmail.com
+  termsOfService: 'http://www.incar.co.kr'
+  description: |
+    고객관리 API 문서
+servers:
+  - url: 'http://air.incar.co.kr'
+paths:
+  /Gogek/Gogek2/List:
+    post:
+      summary: 고객관리-리스트
+      operationId: post-Gogek-Gogek2-List
+      responses:
+        '200':
+          description: IMO에서 필요한 데이터만 출력
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: object
+                    properties:
+                      status:
+                        type: object
+                        properties:
+                          ercode:
+                            type: string
+                            description: "에러코드 '0'이 아니면 에러"
+                          ermsg:
+                            type: string
+                            description: 에러 메세지
+                      object:
+                        type: object
+                        properties:
+                          currentPageNo:
+                            type: string
+                            description: 현재 페이지번호
+                          totalPageNo:
+                            type: string
+                            description: 전체 페이지 수
+                          totalRecCount:
+                            type: string
+                            description: 전체 건수
+                          rec:
+                            type: object
+                            properties:
+                              gogek_no:
+                                type: string
+                                description: '고객번호 '
+                              gogek_gubun:
+                                type: string
+                                description: 고객구분
+                              gubun:
+                                type: string
+                                description: '고객구분 1:일반, 2:사업자'
+                              gubun_nm:
+                                type: string
+                                description: 구분명
+                              name:
+                                type: string
+                                description: 고객명
+                              public_no:
+                                type: string
+                                description: 고객주민번호
+                              tel_no:
+                                type: string
+                                description: 전화번호
+                              hp_no:
+                                type: string
+                                description: 핸드폰번호
+                              e_mail:
+                                type: string
+                                description: 이메일
+                              create_date:
+                                type: string
+                                description: 고객등록날짜
+                              sawon_cd:
+                                type: string
+                                description: 담당자 사번
+                              sawon_nm:
+                                type: string
+                                description: 담당자 이름
+                              checked:
+                                type: string
+                              my_geyak:
+                                type: string
+                                description: 계약 건수
+                              group_name:
+                                type: string
+                                description: 고객그룹
+                              is_holy:
+                                type: string
+                                description: 이벤트 생일/결혼
+                              is_holy_day:
+                                type: string
+                                description: 생일/결혼 날짜
+                            required:
+                              - gogek_no
+      description: 고객관리 리스트
+      parameters: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: '호출 URL 예: /Gogek/Gogek2/List'
+                  default: /Gogek/Gogek2/List
+                my_gogek:
+                  type: string
+                  description: '로그인한 사원번호 예:1611064'
+                  example: '1611064'
+                listCount:
+                  type: string
+                  default: '20'
+                  description: '목록수 예: 20'
+                name:
+                  type: string
+                  description: '검색 고객명 예:김인카'
+                gubun:
+                  type: string
+                  description: '구분값 디폴트:true'
+                  default: 'true'
+                imochk:
+                  type: string
+                  description: 'IMO에서 요청 했는지 체크 디폴트:ok'
+                  default: ok
+              required:
+                - url
+                - my_gogek
+                - gubun
+                - imochk
+        description: 고객리스트 조회 항목
+      tags:
+        - 고객관리
+    parameters: []
+  /Gogek/Gogek2/ViewGeneral:
+    parameters: []
+    post:
+      summary: 고객관리-상세
+      operationId: post-Gogek-Gogek2-ViewGeneral
+      responses:
+        '200':
+          description: 고객상세 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: object
+                    properties:
+                      status:
+                        type: object
+                        properties:
+                          ercode:
+                            type: string
+                          ermsg:
+                            type: string
+                      object:
+                        type: object
+                        properties:
+                          permission:
+                            type: string
+                          gogek_no:
+                            type: string
+                          name:
+                            type: string
+                          public_no:
+                            type: string
+                          ign_yb:
+                            type: string
+                          job_nm:
+                            type: string
+                          job_cd:
+                            type: string
+                          birth_date:
+                            type: string
+                          birth_gb:
+                            type: string
+                          marry_date:
+                            type: string
+                          e_mail:
+                            type: string
+                          home_tel_no:
+                            type: string
+                          hp_no:
+                            type: string
+                          fax_no:
+                            type: string
+                          zip_cd:
+                            type: string
+                          addr1:
+                            type: string
+                          addr2:
+                            type: string
+                          job_company_nm:
+                            type: string
+                          job_position:
+                            type: string
+                          office_tel_no:
+                            type: string
+                          office_zip_cd:
+                            type: string
+                          office_addr1:
+                            type: string
+                          office_addr2:
+                            type: string
+                          bigo:
+                            type: string
+                          group_pk:
+                            type: string
+                          create_date:
+                            type: string
+                          damdangja_id:
+                            type: string
+                          damdangja_nm:
+                            type: string
+                          company_nm:
+                            type: string
+                          company_cd:
+                            type: string
+                          sogeja_id:
+                            type: string
+                          sogeja_nm:
+                            type: string
+                          sex:
+                            type: string
+                          age:
+                            type: string
+                          sang_date:
+                            type: string
+                          address_mode:
+                            type: string
+                          new_zip_cd:
+                            type: string
+                          new_addr1:
+                            type: string
+                          new_addr2:
+                            type: string
+                          new_dong:
+                            type: string
+                          new_bldg:
+                            type: string
+                          office_address_mode:
+                            type: string
+                          new_office_zip_cd:
+                            type: string
+                          new_office_addr1:
+                            type: string
+                          new_office_addr2:
+                            type: string
+                          new_office_dong:
+                            type: string
+                          new_office_bldg:
+                            type: string
+                          family_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                family_name:
+                                  type: string
+                                family_relation:
+                                  type: string
+                                family_public_number:
+                                  type: string
+                                family_birth_day:
+                                  type: string
+                                family_sex_label:
+                                  type: string
+                                family_married_day:
+                                  type: string
+                                family_age:
+                                  type: string
+                          car_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                carNumber:
+                                  type: string
+                                carExpiration:
+                                  type: string
+                                car_no:
+                                  type: string
+                                bh_end:
+                                  type: string
+                                car_details:
+                                  type: string
+                                car_name:
+                                  type: string
+                                car_pk:
+                                  type: string
+                                car_year:
+                                  type: string
+                                car_year_ab:
+                                  type: string
+                                car_birth:
+                                  type: string
+                                car_accs:
+                                  type: string
+                                car_tyaks:
+                                  type: string
+                          group_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                group_name:
+                                  type: string
+                                order_no:
+                                  type: string
+                                create_date:
+                                  type: string
+                                '':
+                                  type: string
+                          janggi_geyak:
+                            type:
+                              - string
+                              - array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                bh_gubun:
+                                  type: string
+                                car_no:
+                                  type: string
+                                jgno:
+                                  type: string
+                                bh_start:
+                                  type: string
+                                wonsusa_cd:
+                                  type: string
+                                wonsusa_nm:
+                                  type: string
+                          advice_rec:
+                            type:
+                              - string
+                              - array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                gubun:
+                                  type: string
+                                gogek_no:
+                                  type: string
+                                memo:
+                                  type: string
+                                creat_by:
+                                  type: string
+      tags:
+        - 고객관리
+      description: 고객관리 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                gogek_no:
+                  type: string
+                  description: 고객번호
+                imochk:
+                  type: string
+                  description: IMO호출체크 기본 ok
+              required:
+                - gogek_no
+                - imochk
+components:
+  schemas: {}
+  securitySchemes: {}
