@@ -1,0 +1,1989 @@
+openapi: 3.0.0
+info:
+  title: IMO Plus
+  version: '1.0'
+  contact:
+    name: 김기백
+    email: incar.kkb@gmail.com
+  termsOfService: 'http://www.incar.co.kr'
+  description: |
+    IMO Plus API 문서
+
+    # 공통 통신
+
+    모든 통신엔 URL Parameter 필수
+    URL은 Air.incar.co.kr 호출 할 URL 표시
+    예) air.incar.co.kr/Gogek/Gogek2/List 에 호출시
+    url = '/Gogek/Gogek2/List'
+
+    # 인증 처리
+    기본적으로 로그인시 서버에서 응답해준 auth_key를 로컬에 저장.
+    auth_key를 서버 요청시 parameter값에 필수로 포함
+
+    # 필수값
+      - url
+      - auth_key
+servers:
+  - url: 'http://air.incar.co.kr'
+    description: IIMS 서버
+paths:
+  /IMO/ImoPlus/Auth:
+    post:
+      summary: 최초 IMO 로그인
+      operationId: post-Imo-ImoPlus-LoginAuth
+      responses:
+        '200':
+          description: 핸드폰번호
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hp_no:
+                    type: string
+                    description: 핸드폰번호
+      description: "최초 IMO 로그인시 \n브릿지서버로 요청\n사원번호와 비밀번호를 요청 하여 사용자 인증이 되면\nIIMS에 저장된 핸드폰번호(HP_NO) 값을 리턴"
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sawon_cd:
+                  type: string
+                  description: 사원번호
+                password:
+                  type: string
+                  description: 비밀번호
+              required:
+                - sawon_cd
+                - password
+        description: |-
+          사원번호
+          비밀번호
+      tags:
+        - 로그인_인증
+    parameters: []
+  /Imo/ImoPlus/SendSms:
+    post:
+      summary: 로그인 인증번호 요청
+      operationId: post-Imo-ImoPlus-SendSms
+      responses:
+        '200':
+          description: 인증번호 발송 여부
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  send_yb:
+                    type: string
+                    description: '발송 여부 : 1'
+      tags:
+        - 로그인_인증
+      description: 로그인 후 사원 핸드폰 번호로 인증번호 요청
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sawon_cd:
+                  type: string
+                  description: 사원번호
+                hp_no:
+                  type: string
+                  description: 핸드폰번호
+              required:
+                - sawon_cd
+                - hp_no
+        description: 사원번호랑 핸드폰 번호 요청
+  /Imo/ImoPlus/ConfirmSms:
+    post:
+      summary: 인증번호 확인
+      operationId: post-Imo-ImoPlus-ConfirmSms
+      responses:
+        '200':
+          description: 인증번호 확인 후 랜덤한 비밀키
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sms_yb:
+                    type: string
+                    description: '인증번호 확인 : 1'
+                  s_key:
+                    type: string
+                    description: 세션인증시 랜덤한 키값
+      description: 발송된 인증번호 확인
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sawon_cd:
+                  type: string
+                  description: 사원번호
+                sms_no:
+                  type: string
+                  description: 사용자가 입력한 인증번호
+              required:
+                - sawon_cd
+                - sms_no
+      tags:
+        - 로그인_인증
+  /Imo/ImoPlus/GetSession:
+    post:
+      summary: 세션정보획득
+      operationId: post-Imo-ImoPlus-GetSession
+      responses:
+        '200':
+          description: 세션정보 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sawon_cd:
+                    type: string
+                    description: 사원번호
+                  sawon_nm:
+                    type: string
+                    description: 사원명
+                  dept_cd:
+                    type: string
+                    description: 부서코드
+                  new_dept_pk:
+                    type: string
+                    description: new_dept 테이블 PK
+                  company_cd:
+                    type: string
+                    description: 소속 코드
+                  hp_no:
+                    type: string
+                    description: 핸드폰번호
+                  auth_key:
+                    type: string
+                    description: 인증키값 중요
+      description: 세션정보 획득
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sawon_cd:
+                  type: string
+                  description: 사원번호
+                token:
+                  type: string
+                  description: 핸드폰 고유 기기값
+                s_key:
+                  type: string
+                  description: 인증문자 확인 후 응답한 s_key값
+              required:
+                - sawon_cd
+                - token
+                - s_key
+      tags:
+        - 로그인_인증
+  /Gogek/Gogek2/List:
+    post:
+      summary: 고객관리-리스트
+      operationId: post-Gogek-Gogek2-List
+      responses:
+        '200':
+          description: IMO에서 필요한 데이터만 출력
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: object
+                    properties:
+                      status:
+                        type: object
+                        properties:
+                          ercode:
+                            type: string
+                            description: "에러코드 '0'이 아니면 에러"
+                          ermsg:
+                            type: string
+                            description: 에러 메세지
+                      object:
+                        type: object
+                        properties:
+                          currentPageNo:
+                            type: string
+                            description: 현재 페이지번호
+                          totalPageNo:
+                            type: string
+                            description: 전체 페이지 수
+                          totalRecCount:
+                            type: string
+                            description: 전체 건수
+                          rec:
+                            type: object
+                            properties:
+                              gogek_no:
+                                type: string
+                                description: '고객번호 '
+                              gogek_gubun:
+                                type: string
+                                description: 고객구분
+                              gubun:
+                                type: string
+                                description: '고객구분 1:일반, 2:사업자'
+                              gubun_nm:
+                                type: string
+                                description: 구분명
+                              name:
+                                type: string
+                                description: 고객명
+                              public_no:
+                                type: string
+                                description: 고객주민번호
+                              tel_no:
+                                type: string
+                                description: 전화번호
+                              hp_no:
+                                type: string
+                                description: 핸드폰번호
+                              e_mail:
+                                type: string
+                                description: 이메일
+                              create_date:
+                                type: string
+                                description: 고객등록날짜
+                              sawon_cd:
+                                type: string
+                                description: 담당자 사번
+                              sawon_nm:
+                                type: string
+                                description: 담당자 이름
+                              checked:
+                                type: string
+                              my_geyak:
+                                type: string
+                                description: 계약 건수
+                              group_name:
+                                type: string
+                                description: 고객그룹
+                              is_holy:
+                                type: string
+                                description: 이벤트 생일/결혼
+                              is_holy_day:
+                                type: string
+                                description: 생일/결혼 날짜
+                            required:
+                              - gogek_no
+      description: 고객관리 리스트
+      parameters: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: '호출 URL 예: /Gogek/Gogek2/List'
+                  default: /Gogek/Gogek2/List
+                my_gogek:
+                  type: string
+                  description: '로그인한 사원번호 예:1611064'
+                  example: '1611064'
+                listCount:
+                  type: string
+                  default: '20'
+                  description: '목록수 예: 20'
+                name:
+                  type: string
+                  description: '검색 고객명 예:김인카'
+                gubun:
+                  type: string
+                  description: '구분값 디폴트:true'
+                  default: 'true'
+                imochk:
+                  type: string
+                  description: 'IMO에서 요청 했는지 체크 디폴트:ok'
+                  default: ok
+              required:
+                - url
+                - my_gogek
+                - gubun
+                - imochk
+        description: 고객리스트 조회 항목
+      tags:
+        - 고객관리
+    parameters: []
+  /Gogek/Gogek2/ViewGeneral:
+    parameters: []
+    post:
+      summary: 고객관리-상세
+      operationId: post-Gogek-Gogek2-ViewGeneral
+      responses:
+        '200':
+          description: 고객상세 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: object
+                    properties:
+                      status:
+                        type: object
+                        properties:
+                          ercode:
+                            type: string
+                          ermsg:
+                            type: string
+                      object:
+                        type: object
+                        properties:
+                          permission:
+                            type: string
+                          gogek_no:
+                            type: string
+                          name:
+                            type: string
+                          public_no:
+                            type: string
+                          ign_yb:
+                            type: string
+                          job_nm:
+                            type: string
+                          job_cd:
+                            type: string
+                          birth_date:
+                            type: string
+                          birth_gb:
+                            type: string
+                          marry_date:
+                            type: string
+                          e_mail:
+                            type: string
+                          home_tel_no:
+                            type: string
+                          hp_no:
+                            type: string
+                          fax_no:
+                            type: string
+                          zip_cd:
+                            type: string
+                          addr1:
+                            type: string
+                          addr2:
+                            type: string
+                          job_company_nm:
+                            type: string
+                          job_position:
+                            type: string
+                          office_tel_no:
+                            type: string
+                          office_zip_cd:
+                            type: string
+                          office_addr1:
+                            type: string
+                          office_addr2:
+                            type: string
+                          bigo:
+                            type: string
+                          group_pk:
+                            type: string
+                          create_date:
+                            type: string
+                          damdangja_id:
+                            type: string
+                          damdangja_nm:
+                            type: string
+                          company_nm:
+                            type: string
+                          company_cd:
+                            type: string
+                          sogeja_id:
+                            type: string
+                          sogeja_nm:
+                            type: string
+                          sex:
+                            type: string
+                          age:
+                            type: string
+                          sang_date:
+                            type: string
+                          address_mode:
+                            type: string
+                          new_zip_cd:
+                            type: string
+                          new_addr1:
+                            type: string
+                          new_addr2:
+                            type: string
+                          new_dong:
+                            type: string
+                          new_bldg:
+                            type: string
+                          office_address_mode:
+                            type: string
+                          new_office_zip_cd:
+                            type: string
+                          new_office_addr1:
+                            type: string
+                          new_office_addr2:
+                            type: string
+                          new_office_dong:
+                            type: string
+                          new_office_bldg:
+                            type: string
+                          family_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                family_name:
+                                  type: string
+                                family_relation:
+                                  type: string
+                                family_public_number:
+                                  type: string
+                                family_birth_day:
+                                  type: string
+                                family_sex_label:
+                                  type: string
+                                family_married_day:
+                                  type: string
+                                family_age:
+                                  type: string
+                          car_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                carNumber:
+                                  type: string
+                                carExpiration:
+                                  type: string
+                                car_no:
+                                  type: string
+                                bh_end:
+                                  type: string
+                                car_details:
+                                  type: string
+                                car_name:
+                                  type: string
+                                car_pk:
+                                  type: string
+                                car_year:
+                                  type: string
+                                car_year_ab:
+                                  type: string
+                                car_birth:
+                                  type: string
+                                car_accs:
+                                  type: string
+                                car_tyaks:
+                                  type: string
+                          group_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                group_name:
+                                  type: string
+                                order_no:
+                                  type: string
+                                create_date:
+                                  type: string
+                                '':
+                                  type: string
+                          janggi_geyak:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                bh_gubun:
+                                  type: string
+                                car_no:
+                                  type: string
+                                jgno:
+                                  type: string
+                                bh_start:
+                                  type: string
+                                wonsusa_cd:
+                                  type: string
+                                wonsusa_nm:
+                                  type: string
+                          advice_rec:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                pk:
+                                  type: string
+                                gubun:
+                                  type: string
+                                gogek_no:
+                                  type: string
+                                memo:
+                                  type: string
+                                creat_by:
+                                  type: string
+      tags:
+        - 고객관리
+      description: 고객관리 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                gogek_no:
+                  type: string
+                  description: 고객번호
+                imochk:
+                  type: string
+                  description: IMO호출체크 기본 ok
+              required:
+                - gogek_no
+                - imochk
+  /Etc/Notice/List:
+    post:
+      summary: 공지사항-리스트
+      operationId: post-Etc-Notice-List
+      responses:
+        '200':
+          description: 리스트 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentPageNo:
+                    type: string
+                  totalPageNo:
+                    type: string
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pk:
+                          type: string
+                          description: 리스트 고유키
+                        writeDate:
+                          type: string
+                          description: 작성일
+                        title:
+                          type: string
+                          description: 제목
+        '201':
+          description: Created
+      tags:
+        - 공지사항
+      description: 공지사항 리스트
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page_row:
+                  type: string
+                  description: 현재 페이지 번호
+                category1:
+                  type: string
+                  description: 공지사항 카테고리
+                  default: '7'
+                search_sel:
+                  type: string
+                  description: |-
+                    검색구분 항목
+                    title : 제목
+                    content : 내용
+                    name : 이름
+                    file_path : 파일
+                    title_or_content : 제목 + 내용
+                search:
+                  type: string
+                  description: 검색어
+              required:
+                - page_row
+                - category1
+  /Etc/Notice/View:
+    post:
+      summary: 공지사항-상세
+      operationId: post-Etc-Notice-View
+      responses:
+        '200':
+          description: 공지사항 상세 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: 제목
+                  writer:
+                    type: string
+                    description: 작성자
+                  writeDate:
+                    type: string
+                    description: 작성일
+                  content_br:
+                    type: string
+                    description: 내용
+                  file_list:
+                    $ref: '#/components/schemas/file_rec'
+      tags:
+        - 공지사항
+      description: 공지사항 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pk:
+                  type: string
+                  description: 공지사항 고유키 (리스트에서 받은값)
+                imochk:
+                  type: string
+                  default: ok
+                  description: IMO 요청 여부
+              required:
+                - pk
+                - imochk
+  /Main/FirstPage/GingubList:
+    post:
+      summary: 긴급출동
+      operationId: post-Main-FirstPage-GingubList
+      responses:
+        '200':
+          description: 긴급출동 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        wonsusa_nm:
+                          type: string
+                          description: 보험사명
+                        service_nm:
+                          type: string
+                          description: '서비스명 예:애니카서비스'
+                        chuldong_reciver:
+                          type: string
+                          description: 출동 전화번호
+                        childong_caller:
+                          type: string
+                          description: 대표번호
+                        h24_reciver:
+                          type: string
+                          description: 보상상담 번호
+                        h24_caller:
+                          type: string
+                          description: 대표번호
+      description: 긴급출동 리스트
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                imochk:
+                  type: string
+                  description: IMO 호출 체크
+                  default: ok
+              required:
+                - imochk
+        description: ''
+      tags:
+        - 긴급출동
+  /Main/FirstPage/MuijaList:
+    post:
+      summary: 무이자할부
+      operationId: post-Main-FirstPage-MuijaList
+      responses:
+        '200':
+          description: 카드무이자 응답
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    wonsusa_nm:
+                      type: string
+                      description: 보험사명
+                    wonsusa_cd:
+                      type: string
+                      description: 보험사코드
+                    card_nm:
+                      type: string
+                      description: 카드명
+                    context:
+                      type: string
+                      description: 카드 무이자 할부 내역
+                    bigo:
+                      type: string
+                      description: 비고
+                    to_date:
+                      type: string
+                      description: 무이자 종료일자
+      description: '카드무이자 할부 '
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                imochk:
+                  type: string
+                  default: ok
+        description: 카드무이자 서버 호출
+      tags:
+        - 무이자할부
+  /Etc/ISalesBank/BoardList:
+    post:
+      summary: 세일즈뱅크-리스트 공통
+      operationId: post-Etc-ISalesBank-BoardList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pk:
+                          type: string
+                          description: 고유키
+                        thumbnail:
+                          type: string
+                          description: 썸네일
+                        base64_thumbnail:
+                          type: string
+                          description: 썸네일 Base64_encode
+                        title:
+                          type: string
+                          description: 제목
+                        view_cnt:
+                          type: string
+                          description: 클릭수
+      description: 세일즈뱅크 전체 공통
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                tab_no:
+                  type: string
+                  default: '1'
+                  description: " 탭 번호\n 1: 세일즈북\n 2: 전략상품\n 3: 인카전용\n 5: 패키지\n 6: 스크랩\n 7: 보험사자료"
+                cate1_cd:
+                  type: string
+                  description: 카테고리1 코드. 빈값
+                cate2_cd:
+                  type: string
+                  description: 카테고리2 코드. 빈값
+                order_name:
+                  type: string
+                  description: 빈값
+                order_value:
+                  type: string
+                  description: 빈값
+                rule_is_write:
+                  type: string
+                  default: '2'
+                  description: 기본값 2
+                imo:
+                  type: string
+                  description: IMO 여부 체크
+                  default: m
+                pageRow:
+                  type: string
+                  description: 페이지수. 기본 5
+                  default: '20'
+                keytype:
+                  type: string
+                  description: |-
+                    검색조건
+                    title+content : 전체
+                    title : 제목
+                    content : 내용
+                keywd:
+                  type: string
+                  description: 검색어
+                currentPageNo:
+                  type: string
+                  description: 현재 페이지 번호
+              required:
+                - tab_no
+                - cate1_cd
+                - cate2_cd
+                - order_name
+                - order_value
+                - rule_is_write
+                - imo
+        description: 세일즈뱅크 공통
+      tags:
+        - 세일즈뱅크
+  /Etc/ISalesBank/BoardView:
+    post:
+      summary: 세일즈뱅크-상세 공통
+      operationId: post-Etc-ISalesBank-BoardView
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: 제목
+                  writer_name:
+                    type: string
+                    description: 작성자
+                  view_count:
+                    type: string
+                    description: 조회수
+                  suggest_label:
+                    type: string
+                    description: 평가
+                  suggest:
+                    type: string
+                    description: 평가점수
+                  content:
+                    type: string
+                    description: 내용
+                  file_list:
+                    $ref: '#/components/schemas/file_rec'
+      description: 세일즈뱅크 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pk:
+                  type: string
+                  description: 고유키
+              required:
+                - pk
+      tags:
+        - 세일즈뱅크
+  /Etc/ISalesBank/ReplyList:
+    post:
+      summary: 세일즈뱅크-댓글
+      operationId: post-Etc-ISalesBank-ReplyList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        create_nm:
+                          type: string
+                          description: 작성자명
+                        content:
+                          type: string
+                          description: 내용
+                        create_date:
+                          type: string
+                          description: 작성일
+      description: 세일즈뱅크 댓글
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                doc_pk:
+                  type: string
+                  description: 세일즈뱅크 상세 PK
+              required:
+                - doc_pk
+      tags:
+        - 세일즈뱅크
+  /Etc/InsurancePds/List:
+    post:
+      summary: 보험자료실-리스트
+      operationId: post-Etc-InsurancePds-List
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPageNo:
+                    type: string
+                    description: 전체페이지수
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pk:
+                          type: string
+                          description: 고유키
+                        ti:
+                          type: string
+                          description: 제목
+                        writeDate:
+                          type: string
+                          description: 작성일
+                  currentPageNo:
+                    type: string
+                    description: 현재페이지
+      tags:
+        - 보험자료실
+      description: 보험자료실 리스트
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pageRow:
+                  type: string
+                  description: 페이지로우
+                category1:
+                  type: string
+                  description: 카테고리 기본 7
+                  default: '7'
+                search_sel:
+                  type: string
+                  description: |-
+                    검색구분
+                    title : 제목
+                    content : 내용
+                    name : 이름
+                    file_path : 파일
+                    title_or_content : 제목 + 내용
+                search:
+                  type: string
+                  description: 검색어
+              required:
+                - category1
+  /Etc/InsurancePds/View:
+    post:
+      summary: 보험자료실-상세
+      operationId: post-Etc-InsurancePds-View
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: 제목
+                  writer:
+                    type: string
+                    description: 작성자
+                  writeDate:
+                    type: string
+                    description: 작성일
+                  content_br:
+                    type: string
+                    description: 내용
+                  file_rec:
+                    $ref: '#/components/schemas/file_rec'
+      description: 보험자료실 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pk:
+                  type: string
+                  description: 고유키
+                imochk:
+                  type: string
+                  default: ok
+              required:
+                - pk
+                - imochk
+      tags:
+        - 보험자료실
+  /Imo/Network/NetworkList:
+    post:
+      summary: 비상연락망
+      operationId: post-Imo-Network-NetworkList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        company_cd:
+                          type: string
+                          description: |
+                            소속 코드
+                        code:
+                          type: string
+                          description: new_dept 테이블의 Code
+                        length:
+                          type: string
+                          description: 길이
+                        seq:
+                          type: string
+                          description: 부모키
+                        seq_parent:
+                          type: string
+                          description: 부모참조
+                        level:
+                          type: string
+                          description: 깊이
+                        name:
+                          type: string
+                          description: 사원명
+                        hp_no:
+                          type: string
+                          description: 핸드폰번호
+      description: 비상연락망
+      tags:
+        - 비상연락망
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                search:
+                  type: string
+                  description: 검색어
+        description: ''
+  /Janggi/Geyak/GeyakList:
+    post:
+      summary: 손보계약조회-리스트
+      operationId: post-Janggi-Geyak-GeyakList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page_start:
+                    type: string
+                    description: 페이지 시작번호
+                  page_end:
+                    type: string
+                    description: 페이지 종료 번호
+                  currentPageNo:
+                    type: string
+                    description: 현재페이지번호
+                  totalPageNo:
+                    type: string
+                    description: 전체 페이지 번호
+                  totalRecCount:
+                    type: string
+                    description: 전체 목록 수
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        g_name:
+                          type: string
+                          description: 계약자/피보험자명
+                        sangpum_nm:
+                          type: string
+                          description: 상품명
+                        wonsusa_nm:
+                          type: string
+                          description: 보험사명
+                        bh_start:
+                          type: string
+                          description: 보험시작일
+                        bh_end:
+                          type: string
+                          description: 보험종료일
+                        temp_status:
+                          type: string
+                          description: 상태
+                        nibb_sm:
+                          type: string
+                          description: 납입방법
+                        nabki_manki:
+                          type: string
+                          description: 납입만기
+                        total_p:
+                          type: string
+                          description: 보험료
+                        janggi_insu_geyak_pk:
+                          type: string
+                          description: 계약 고유키
+      description: 손보계약조회 리스트
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                searchGubun:
+                  type: string
+                  description: |-
+                    검색구분
+                    name : 계약자명
+                    p_name : 피보험자명
+                    jumin : 계약자주민번호
+                    p_jumin : 피보험자주민번호
+                    jgno : 증권번호
+                    damdangja : 담당자명
+                searchValue:
+                  type: string
+                  description: 검색어
+                currentPageNo:
+                  type: string
+                  description: 현재페이지번호
+                listCount:
+                  type: string
+                  description: 페이지에 출력될 목록수
+                category1:
+                  type: string
+                  description: "기본 '7'"
+                mobile:
+                  type: string
+                  default: 'yes'
+                  description: '기본 : yes'
+                imochk:
+                  type: string
+                  default: ok
+                  description: '기본 : ok'
+              required:
+                - currentPageNo
+                - listCount
+                - category1
+                - mobile
+                - imochk
+      tags:
+        - 손보계약
+  /Janggi/Geyak/GeyakView:
+    post:
+      summary: 손보계약-상세
+      operationId: post-Janggi-Geyak-GeyakView
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dept_nm:
+                    type: string
+                    description: 소속
+                  company_nm:
+                    type: string
+                    description: 파트너
+                  damdangja_nm:
+                    type: string
+                    description: 담당자명
+                  sangpum_category_nm:
+                    type: string
+                    description: 담보명
+                  wonsusa_nm:
+                    type: string
+                    description: 보험사명
+                  sangpum_nm:
+                    type: string
+                    description: 보험상품명
+                  statuscode_nm:
+                    type: string
+                    description: 상태명
+                  last_woldo:
+                    type: string
+                    description: 최종납월
+                  last_hoi:
+                    type: string
+                    description: 최종회차
+                  nabki:
+                    type: string
+                    description: 납기
+                  manki:
+                    type: string
+                    description: 만기
+                  jgno:
+                    type: string
+                    description: 증권번호
+                  g_public_no:
+                    type: string
+                    description: 계약자 주민번호
+                  g_name:
+                    type: string
+                    description: 계약자명
+                  g_tel:
+                    type: string
+                    description: 계약자 전화번호
+                  g_hp:
+                    type: string
+                    description: 계약자 핸드폰
+                  g_job_nm:
+                    type: string
+                    description: 계약자 직업
+                  g_zip_cd:
+                    type: string
+                    description: 계약자 우편번호
+                  g_addr1:
+                    type: string
+                    description: 계약자 주소1
+                  g_addr2:
+                    type: string
+                    description: 계약자 주소2
+                  g_fax:
+                    type: string
+                    description: 계약자 팩스번호
+                  g_e_mail:
+                    type: string
+                    description: 계약자 이메일
+                  bh_start:
+                    type: string
+                    description: 보험기간
+                  m_total_p:
+                    type: string
+                    description: 보험료
+                  nibbcode_cd:
+                    type: string
+                    description: 납입방법
+                  docu_ilja:
+                    type: string
+                    description: 원본접수
+                  jgno_ilja:
+                    type: string
+                    description: 증권전달
+                  pibohumja_rec:
+                    type: array
+                    description: 피보험자 array
+                    items:
+                      type: object
+                      properties:
+                        relation:
+                          type: string
+                          description: 관계
+                        jupi_yb:
+                          type: string
+                          description: 주피
+                        name:
+                          type: string
+                          description: 성명
+                        public_no:
+                          type: string
+                          description: 주민번호
+                        job_cd:
+                          type: string
+                          description: 직업코드
+                        job_nm:
+                          type: string
+                          description: 직업명
+                        home_tel_no:
+                          type: string
+                          description: 연락처
+                        hp_no:
+                          type: string
+                          description: 핸드폰
+                        car_select:
+                          type: string
+                          description: 운전형태
+                        before_sick_yb:
+                          type: string
+                          description: 상병여부
+                  file_list:
+                    $ref: '#/components/schemas/file_rec'
+      description: 손보계약 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pk:
+                  type: string
+                  description: janggi_insu_geyak의 고유키
+              required:
+                - pk
+      tags:
+        - 손보계약
+  /Life/Geyak/GeyakList:
+    post:
+      summary: 생보계약-리스트
+      operationId: post-Life-Geyak-GeyakList
+      responses:
+        '200':
+          description: OK
+      description: "생보계약 리스트 \n손보계약 리스트랑 구조 같음"
+      tags:
+        - 생보계약
+  /Life/Geyak/GeyakView:
+    post:
+      summary: 생보계약-상세
+      operationId: post-Life-Geyak-GeyakView
+      responses:
+        '200':
+          description: OK
+      tags:
+        - 생보계약
+      description: |-
+        생보계약 상세
+        손보계약 상세랑 구조 같음. 참조
+  /Ilban/GeyakJubsu/GeyakList:
+    post:
+      summary: 일반계약-리스트
+      operationId: post-Ilban-GeyakJubsu-GeyakList
+      responses:
+        '200':
+          description: OK
+      description: |-
+        일반계약 리스트
+        손보계약 리스트랑 구조 같음
+      tags:
+        - 일반계약
+  /Ilban/GeyakJubsu/GeyakView:
+    post:
+      summary: 일반계약-상세
+      operationId: post-Ilban-GeyakJubsu-GeyakView
+      responses:
+        '200':
+          description: OK
+      description: |-
+        일반계약 상세
+        손보계약 상세랑 구조 같음.
+      tags:
+        - 일반계약
+  /Car/Jubsu/MtList:
+    post:
+      summary: 자동차설계-리스트
+      operationId: post-Car-Jubsu-MtList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        car_insu_mt_pk:
+                          type: string
+                          description: car_insu_mt 테이블 pk
+                        car_insu_sulgye_pk:
+                          type: string
+                          description: car_insu_sulgye 테이블 pk
+                        gogek_no:
+                          type: string
+                          description: 고객번호
+                        public_no:
+                          type: string
+                          description: 주민번호
+                        wonsusa_nm:
+                          type: string
+                          description: 보험사명
+                        statuscode_cd:
+                          type: string
+                          description: 상태코드
+                        hp_no:
+                          type: string
+                          description: 핸드폰번호
+                        bh_distance:
+                          type: string
+                          description: 보험기간
+                        update_date:
+                          type: string
+                          description: 데이터 업데이트 시간
+                        name:
+                          type: string
+                          description: 이름
+                        car_no:
+                          type: string
+                          description: 차량번호
+                        statuscode_nm:
+                          type: string
+                          description: 상태명
+      description: 자동차 설계 리스트
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                gurrentPageNo:
+                  type: string
+                  description: 현재 페이지 번호
+                listCount:
+                  type: string
+                  description: 한페이지에 나올 목록수
+                mobile:
+                  type: string
+                  default: 'yes'
+                ismobile:
+                  type: string
+                  default: '2'
+                car_no:
+                  type: string
+                  description: 검색조건 차량번호
+                p_name:
+                  type: string
+                  description: 검색조건 피보험자명
+                public_no:
+                  type: string
+                  description: 검색조건. 피보험자주민번호
+              required:
+                - gurrentPageNo
+                - listCount
+                - mobile
+                - ismobile
+      tags:
+        - 자동차설계
+  /Car/JubsuTest/SulgyeView:
+    post:
+      summary: 자동차설계-상세
+      operationId: post-Car-JubsuTest-SulgyeView
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  insu_type:
+                    type: string
+                    description: 보험종목
+                  name:
+                    type: string
+                    description: 고객명
+                  car_no:
+                    type: string
+                    description: 차량번호
+                  bh_start:
+                    type: string
+                    description: 보험시작일
+                  bh_end:
+                    type: string
+                    description: 보험종료일
+                  driver_type:
+                    type: string
+                    description: 운전자 범위
+                  driver_age:
+                    type: string
+                    description: 운전자 연령
+                  car_use:
+                    type: string
+                    description: 차량용도
+                  marry_yb:
+                    type: string
+                    description: 결혼여부
+                  son_yb:
+                    type: string
+                    description: 자녀운전
+                  car_pk:
+                    type: string
+                    description: 차량코드
+                  car_year:
+                    type: string
+                    description: 차량연식
+                  car_name:
+                    type: string
+                    description: 차량명
+                  car_kind1:
+                    type: string
+                    description: 차량종류
+                  car_serial_no:
+                    type: string
+                    description: 차대번호
+                  car_birth:
+                    type: string
+                    description: 최초등록
+                  car_price:
+                    type: string
+                    description: 차량가액
+                  f_car_price:
+                    type: string
+                    description: 총차량가액
+                  daein2_name:
+                    type: string
+                    description: 대인2
+                  daemul_name:
+                    type: string
+                    description: 대물배상
+                  jasin_name:
+                    type: string
+                    description: 자기신체
+                  mubohum_name:
+                    type: string
+                    description: 무보험
+                  jacha_nm:
+                    type: string
+                    description: 자차
+                  mulsa:
+                    type: string
+                    description: 물적사고
+                  culdong_name:
+                    type: string
+                    description: 긴급출동
+                  gaib_carrier:
+                    type: string
+                    description: 가입경력
+                  wiban_cd:
+                    type: string
+                    description: 법규위반
+                  pjhihj_cd:
+                    type: string
+                    description: 할인할증
+                  haljeung:
+                    type: string
+                    description: 특별할증
+                  sil_gaib:
+                    type: string
+                    description: 실가입경력
+                  dongil:
+                    type: string
+                    description: 동일증권
+                  insu_mulgun:
+                    type: string
+                    description: 인수물건
+                  premiumRec:
+                    type: array
+                    description: 보험료 비교
+                    items:
+                      type: object
+                      properties:
+                        wonsusa_nm:
+                          type: string
+                          description: 보험사
+                        ime_p:
+                          type: string
+                          description: 임의보험료
+                        chkim_p:
+                          type: string
+                          description: 책임보험료
+                        total_p:
+                          type: string
+                          description: 총보험료
+      description: 자동차설계 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                car_insu_sulgye_pk:
+                  type: string
+                  description: car_insu_sulgye 테이블 pk
+              required:
+                - car_insu_sulgye_pk
+      tags:
+        - 자동차설계
+  /Car/Jubsu/GogekSangdamList:
+    post:
+      summary: 자동차설계-고객상담리스트
+      operationId: post-Car-Jubsu-GogekSangdamList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        create_date:
+                          type: string
+                          description: 상담일자
+                        car_no:
+                          type: string
+                          description: 실차량번호
+                        name:
+                          type: string
+                          description: 작성자
+                        content:
+                          type: string
+                          description: 상담내용
+      description: 자동차설계 상세에서 고객상담목록
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                gogek_no:
+                  type: string
+                  description: 고객번호
+                damdangja_id:
+                  type: string
+                  description: 담당자코드(사원번호)
+              required:
+                - gogek_no
+                - damdangja_id
+      tags:
+        - 자동차설계
+  /Car/Geyak/GeyakListSawon:
+    post:
+      summary: 자동차계약-리스트
+      operationId: post-Car-Geyak-GeyakListSawon
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentPageNo:
+                    type: string
+                  totalPageNo:
+                    type: string
+                  rec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        geyak_no:
+                          type: string
+                          description: 계약번호
+                        p_public_no:
+                          type: string
+                          description: 피보험자주민번호
+                        wonsusa_nm:
+                          type: string
+                          description: 보험사명
+                        bh_distance:
+                          type: string
+                          description: 보험기간
+                        car_no:
+                          type: string
+                          description: 차량번호
+                        statuscode_cd2:
+                          type: string
+                          description: 계약상태
+      tags:
+        - 자동차계약
+      description: 자동차계약 리스트
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                currentPageNo:
+                  type: string
+                  description: 현재페이지 번호
+                damdangja_id:
+                  type: string
+                  description: 담당자코드(사원번호)
+                listCount:
+                  type: string
+                  description: 페이지에 표시할 리스트수
+                mobile:
+                  type: string
+                  default: 'yes'
+                ismobile:
+                  type: string
+                  default: '1'
+                isSawon:
+                  type: string
+                  default: '1'
+                appVersion:
+                  type: string
+                  default: '20080823.1468'
+                car_no:
+                  type: string
+                  description: 검색조건. 차량번호
+                name:
+                  type: string
+                  description: 검색조건. 이름
+                public_no:
+                  type: string
+                  description: 검색조건. 주민번호
+                g_name:
+                  type: string
+                  description: 검색조건. 계약자명
+                g_public_no:
+                  type: string
+                  description: 검색조건. 계약자 주민번호
+              required:
+                - currentPageNo
+                - damdangja_id
+                - mobile
+                - ismobile
+                - isSawon
+                - appVersion
+        description: ''
+  /Car/Geyak/GeyakView:
+    post:
+      summary: 자동차계약-상세
+      operationId: post-Car-Geyak-GeyakView
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  insu_type:
+                    type: string
+                    description: 증권번호
+                  pibohumja_nm:
+                    type: string
+                    description: 고객명
+                  pibohumja_public_no:
+                    type: string
+                    description: 주민번호
+                  car_no:
+                    type: string
+                    description: 차량번호
+                  bh_start:
+                    type: string
+                    description: 보험시작일
+                  bh_end:
+                    type: string
+                    description: 보험종료일
+                  driver_type:
+                    type: string
+                    description: 운전자범위
+                  driver_age:
+                    type: string
+                    description: 운전자연령
+                  car_use:
+                    type: string
+                    description: 차량용도
+                  marry_yb:
+                    type: string
+                    description: 결혼여부
+                  son_yb:
+                    type: string
+                    description: 자녀운전
+                  car_pk:
+                    type: string
+                    description: 차량코드
+                  car_year:
+                    type: string
+                    description: 차량연식
+                  car_name:
+                    type: string
+                    description: 차량명
+                  car_kind1:
+                    type: string
+                    description: 차량종류1
+                  car_kind2:
+                    type: string
+                    description: 차량종류2
+                  car_serial_no:
+                    type: string
+                    description: 차대번호
+                  car_birth:
+                    type: string
+                    description: 최초등록
+                  car_price:
+                    type: string
+                    description: 차량가액
+                  f_car_price:
+                    type: string
+                    description: 총차량가액
+                  daein2:
+                    type: string
+                    description: 대인2
+                  daemul:
+                    type: string
+                    description: 대물배상
+                  jasin_busang_code:
+                    type: string
+                    description: 자기신체
+                  mubohum:
+                    type: string
+                    description: 무보험
+                  jacha:
+                    type: string
+                    description: 자차
+                  mulsa:
+                    type: string
+                    description: 물적사고
+                  chuldong:
+                    type: string
+                    description: 긴급출동
+                  gaib_carrier:
+                    type: string
+                    description: 가입경력
+                  wiban_cd:
+                    type: string
+                    description: 법규위반
+                  pjhihj_cd:
+                    type: string
+                    description: 할인할증
+                  haljeung:
+                    type: string
+                    description: 특별할증
+                  sil_gaib:
+                    type: string
+                    description: 실가입경력
+                  dongil:
+                    type: string
+                    description: 동일증권
+                  insu_mulgun:
+                    type: string
+                    description: 인수물건
+                  wonsusa_nm:
+                    type: string
+                    description: 보험사명
+                  daein1_price:
+                    type: string
+                    description: 대인1금액
+                  daein2_price:
+                    type: string
+                    description: 대인2금액
+                  daemul_price:
+                    type: string
+                    description: 대물금액
+                  jasin_price:
+                    type: string
+                    description: 자산금액
+                  mubohum_price:
+                    type: string
+                    description: 무보험금액
+                  jacha_price:
+                    type: string
+                    description: 자차금액
+                  chuldong_price:
+                    type: string
+                    description: 긴급출동금액
+                  total_p:
+                    type: string
+                    description: 보험료
+                  file_rec:
+                    $ref: '#/components/schemas/file_rec'
+                  sunabRec:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        yonungsu_ilja:
+                          type: string
+                          description: 영수일자
+                        confirm_date:
+                          type: string
+                          description: 확정일
+                        sunab_gb:
+                          type: string
+                          description: 유형
+                        chkim_p:
+                          type: string
+                          description: 책임
+                        ime_p:
+                          type: string
+                          description: 임의
+                        yonugsu_p:
+                          type: string
+                          description: 영수금
+      tags:
+        - 자동차계약
+      description: 자동차계약 상세
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                car_geyak_pk:
+                  type: string
+                  description: 계약 고유코드
+                appVersion:
+                  type: string
+                  description: '20080823.1468'
+              required:
+                - car_geyak_pk
+                - appVersion
+components:
+  schemas:
+    file_rec:
+      title: file_rec
+      type: object
+      description: 파일모델
+      properties:
+        '':
+          type: array
+          items:
+            type: object
+            properties:
+              disk_file:
+                type: string
+                description: 파일고유키
+              source_nm:
+                type: string
+                description: 파일명
+  securitySchemes: {}
+tags:
+  - name: 로그인_인증
+  - name: 공지사항
+  - name: 긴급출동
+  - name: 무이자할부
+  - name: 세일즈뱅크
+  - name: 보험자료실
+  - name: 비상연락망
+  - name: 손보계약
+  - name: 생보계약
+  - name: 일반계약
+  - name: 자동차설계
+  - name: 자동차계약
+  - name: 고객관리
